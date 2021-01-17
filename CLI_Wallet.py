@@ -8,6 +8,17 @@
 import socket, configparser, getpass, os, platform, sys, time, json, datetime
 from signal import signal, SIGINT
 from pathlib import Path
+from termios import *
+
+def enable_echo(enable):
+	fd = sys.stdin.fileno();
+	new = tcgetattr(fd);
+
+	if enable:
+		new[3] |= ECHO;
+	else:
+		new[3] &= ~ECHO;
+	tcsetattr(fd, TCSANOW, new);
 
 try: # Check if requests is installed
 	import requests
@@ -93,7 +104,10 @@ while True:
 		choice = input("  1 - Login\n  2 - Register\n  3 - Exit\n")
 		if int(choice) <= 1:
 			username = input(Style.RESET_ALL + Fore.YELLOW + "Enter your username: " + Style.BRIGHT)
+			enable_echo(False);
 			password = input(Style.RESET_ALL + Fore.YELLOW + "Enter your password: " + Style.BRIGHT)
+			enable_echo(True);
+			print("\r\n");
 
 			s.send(bytes("LOGI," + str(username) + "," + str(password), encoding="utf8"))
 			loginFeedback = s.recv(64).decode().split(",")
